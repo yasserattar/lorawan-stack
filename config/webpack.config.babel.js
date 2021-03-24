@@ -37,7 +37,7 @@ const {
   PUBLIC_DIR = 'public',
   NODE_ENV = 'production',
   MAGE = 'tools/bin/mage',
-  SUPPORT_LOCALES = 'en',
+  SUPPORT_LOCALES = 'en,ja',
   DEFAULT_LOCALE = 'en',
 } = process.env
 
