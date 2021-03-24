@@ -91,7 +91,8 @@ node_modules/
 /sdk/js/dist
 /public
 /stories
-/pkg/webui/locales/.backend
+/pkg/webui/locales/.backend/en.json
+/pkg/webui/locales/.backend/xx.json
 /data/lorawan-devices-index
 
 # Development tooling
