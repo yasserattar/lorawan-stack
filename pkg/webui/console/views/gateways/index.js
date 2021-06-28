@@ -23,6 +23,7 @@ import withFeatureRequirement from '@console/lib/components/with-feature-require
 import Gateway from '@console/views/gateway'
 import GatewayAdd from '@console/views/gateway-add'
 import GatewaysList from '@console/views/gateways-list'
+import GatewayClaim from '@console/views/gateway-claim'
 
 import PropTypes from '@ttn-lw/lib/prop-types'
 import sharedMessages from '@ttn-lw/lib/shared-messages'
@@ -30,9 +31,7 @@ import sharedMessages from '@ttn-lw/lib/shared-messages'
 import { mayViewGateways } from '@console/lib/feature-checks'
 
 @withFeatureRequirement(mayViewGateways, { redirect: '/' })
-@withBreadcrumb('gateways', props => {
-  return <Breadcrumb path="/gateways" content={sharedMessages.gateways} />
-})
+@withBreadcrumb('gateways', () => <Breadcrumb path="/gateways" content={sharedMessages.gateways} />)
 export default class Gateways extends React.Component {
   static propTypes = {
     match: PropTypes.match.isRequired,
@@ -45,6 +44,7 @@ export default class Gateways extends React.Component {
       <Switch>
         <Route exact path={`${path}`} component={GatewaysList} />
         <Route exact path={`${path}/add`} component={GatewayAdd} />
+        <Route exact path={`${path}/claim`} component={GatewayClaim} />
         <Route path={`${path}/:gtwId`} component={Gateway} />
       </Switch>
     )

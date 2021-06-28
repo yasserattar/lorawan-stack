@@ -131,6 +131,15 @@ const getGatewaysLogic = createRequestLogic({
   },
 })
 
+const claimGatewayLogic = createRequestLogic({
+  type: gateways.CLAIM_GATEWAY,
+  process: async ({ action }) => {
+    const { details } = action.payload
+
+    return api.gateway.claim(details)
+  },
+})
+
 const getGatewaysRightsLogic = createRequestLogic({
   type: gateways.GET_GTWS_RIGHTS_LIST,
   process: async ({ action }, dispatch, done) => {
@@ -222,6 +231,7 @@ export default [
   updateGatewayLogic,
   deleteGatewayLogic,
   getGatewaysLogic,
+  claimGatewayLogic,
   getGatewaysRightsLogic,
   startGatewayStatisticsLogic,
   updateGatewayStatisticsLogic,

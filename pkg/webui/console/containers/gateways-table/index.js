@@ -1,4 +1,4 @@
-// Copyright © 2019 The Things Network Foundation, The Things Industries B.V.
+// Copyright © 2021 The Things Network Foundation, The Things Industries B.V.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ import React from 'react'
 import { defineMessages } from 'react-intl'
 import { connect } from 'react-redux'
 
+import Button from '@ttn-lw/components/button'
 import Status from '@ttn-lw/components/status'
 
 import FetchTable from '@ttn-lw/containers/fetch-table'
@@ -29,13 +30,13 @@ import { checkFromState, mayCreateGateways } from '@console/lib/feature-checks'
 
 import { getGatewaysList } from '@console/store/actions/gateways'
 
-import { selectUserIsAdmin } from '@console/store/selectors/user'
 import {
   selectGateways,
   selectGatewaysTotalCount,
   selectGatewaysFetching,
   selectGatewaysError,
 } from '@console/store/selectors/gateways'
+import { selectUserIsAdmin } from '@console/store/selectors/user'
 
 const m = defineMessages({
   ownedTabTitle: 'Owned gateways',
@@ -136,6 +137,10 @@ class GatewaysTable extends React.Component {
     }
   }
 
+  get claimButton() {
+    return <Button.Link message={sharedMessages.claimGateway} to={`/gateways/claim`} secondary />
+  }
+
   render() {
     const { isAdmin, ...rest } = this.props
     return (
@@ -146,6 +151,7 @@ class GatewaysTable extends React.Component {
         getItemsAction={this.getGatewaysList}
         baseDataSelector={this.baseDataSelector}
         tableTitle={<Message content={sharedMessages.gateways} />}
+        actionItems={this.claimButton}
         searchable
         tabs={isAdmin ? tabs : []}
         {...rest}

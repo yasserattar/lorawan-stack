@@ -79,6 +79,7 @@ export default defineMessages({
   channel: 'Channel',
   claimAuthCode: 'Claim authentication code',
   claiming: 'Claiming',
+  claimGateway: 'Claim Gateway',
   clear: 'Clear',
   collaborator: 'Collaborator',
   collaboratorCounted: '{count, plural, one {Collaborator} other {Collaborators}}',
