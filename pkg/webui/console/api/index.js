@@ -246,6 +246,7 @@ export default {
     update: tts.Gateways.updateById.bind(tts.Gateways),
     stats: tts.Gateways.getStatisticsById.bind(tts.Gateways),
     eventsSubscribe: tts.Gateways.openStream.bind(tts.Gateways),
+    claim: tts.Gateways.claim.bind(tts.Gateways),
     collaborators: {
       getOrganization: tts.Gateways.Collaborators.getByOrganizationId.bind(
         tts.Gateways.Collaborators,

@@ -196,7 +196,7 @@ class Gateways {
     return Marshaler.unwrapRights(result)
   }
 
-  // Events Stream
+  // Events Stream.
 
   async openStream(identifiers, tail, after) {
     const payload = {
@@ -234,6 +234,14 @@ class Gateways {
     const response = await this._api._connector.handleRequest('get', endpoint, 'gcs', false)
 
     return Marshaler.payloadSingleResponse(response.data)
+  }
+
+  // Claiming Server.
+
+  async claim(details) {
+    const result = await this._api.GatewayClaimingServer.Claim(details)
+
+    return Marshaler.payloadSingleResponse(result)
   }
 }
 
