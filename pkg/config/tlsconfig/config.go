@@ -107,16 +107,12 @@ type FileReader interface {
 // Client is client-side configuration for server TLS.
 type Client struct {
 	FileReader         FileReader `json:"-" yaml:"-" name:"-"`
+	RootCAPemBytes     []byte     `json:"-" yaml:"-" name:"-"`
 	RootCA             string     `json:"root-ca" yaml:"root-ca" name:"root-ca" description:"Location of TLS root CA certificate (optional)"`
 	InsecureSkipVerify bool       `name:"insecure-skip-verify" description:"Skip verification of certificate chains (insecure)"`
 }
 
-// ApplyTo applies the client configuration options to the given TLS configuration.
-// If tlsConfig is nil, this is a no-op.
-func (c *Client) ApplyTo(tlsConfig *tls.Config) error {
-	if tlsConfig == nil {
-		return nil
-	}
+func (c *Client) LoadRootCA() error {
 	if c.RootCA != "" {
 		readFile := ioutil.ReadFile
 		if c.FileReader != nil {
@@ -126,12 +122,25 @@ func (c *Client) ApplyTo(tlsConfig *tls.Config) error {
 		if err != nil {
 			return err
 		}
+		c.RootCAPemBytes = pem
+	}
+	return nil
+}
+
+// ApplyTo applies the client configuration options to the given TLS configuration.
+// If tlsConfig is nil, this is a no-op.
+func (c *Client) ApplyTo(tlsConfig *tls.Config) error {
+	if tlsConfig == nil {
+		return nil
+	}
+	if len(c.RootCAPemBytes) > 0 {
+		var err error
 		if tlsConfig.RootCAs == nil {
 			if tlsConfig.RootCAs, err = x509.SystemCertPool(); err != nil {
 				tlsConfig.RootCAs = x509.NewCertPool()
 			}
 		}
-		tlsConfig.RootCAs.AppendCertsFromPEM(pem)
+		tlsConfig.RootCAs.AppendCertsFromPEM(c.RootCAPemBytes)
 	}
 	tlsConfig.InsecureSkipVerify = c.InsecureSkipVerify
 	return nil

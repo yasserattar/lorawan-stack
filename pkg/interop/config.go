@@ -48,10 +48,14 @@ func (conf tlsConfig) TLSConfig(fetcher fetch.Interface) (*tls.Config, error) {
 	res := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 	}
-	if err := (&tlsconfig.Client{
+	tlsClient := &tlsconfig.Client{
 		FileReader: fetcherFileReader{fetcher: fetcher},
 		RootCA:     conf.RootCA,
-	}).ApplyTo(res); err != nil {
+	}
+	if err := tlsClient.LoadRootCA(); err != nil {
+		return nil, err
+	}
+	if err := tlsClient.ApplyTo(res); err != nil {
 		return nil, err
 	}
 	if err := (&tlsconfig.ClientAuth{

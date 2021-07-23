@@ -191,6 +191,10 @@ func New(logger log.Stack, config *Config, opts ...Option) (c *Component, err er
 		return nil, err
 	}
 
+	if err := c.initClientTLS(); err != nil {
+		return nil, err
+	}
+
 	config.Interop.SenderClientCA.BlobConfig = config.Blob
 	c.interop, err = interop.NewServer(c, c.FillContext, config.Interop)
 	if err != nil {

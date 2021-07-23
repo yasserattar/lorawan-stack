@@ -101,3 +101,10 @@ func (c *Component) GetTLSClientConfig(ctx context.Context, opts ...TLSConfigOpt
 	}
 	return res, nil
 }
+
+func (c *Component) initClientTLS() error {
+	if err := c.config.TLS.Client.LoadRootCA(); err != nil {
+		return err
+	}
+	return nil
+}
