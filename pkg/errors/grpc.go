@@ -17,18 +17,21 @@ package errors
 import (
 	"context"
 	"encoding/hex"
+	"net/http"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/satori/go.uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
 // FromGRPCStatus converts the gRPC status message into an Error.
 func FromGRPCStatus(status *status.Status) Error {
 	err := build(Definition{
-		code:          uint32(status.Code()),
+		code: uint32(status.Code()),
 	}, 0)
 	err.message = status.Message()
 	if ErrorDetailsFromProto == nil {
@@ -117,6 +120,11 @@ func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 			if ttnErr.correlationID == "" {
 				ttnErr.correlationID = hex.EncodeToString(uuid.NewV4().Bytes()) // Compliant with Sentry.
 			}
+			md, _ := metadata.FromIncomingContext(ctx)
+			if acceptLanguage := md.Get("accept-language"); len(acceptLanguage) > 0 {
+				translated := ttnErr.Translate(acceptLanguage[len(acceptLanguage)-1])
+				ttnErr = &translated
+			}
 			err = ttnErr
 		}
 		return res, err
@@ -130,6 +138,11 @@ func StreamServerInterceptor() grpc.StreamServerInterceptor {
 		if ttnErr, ok := From(err); ok {
 			if ttnErr.correlationID == "" {
 				ttnErr.correlationID = hex.EncodeToString(uuid.NewV4().Bytes()) // Compliant with Sentry.
+			}
+			md, _ := metadata.FromIncomingContext(stream.Context())
+			if acceptLanguage := md.Get("accept-language"); len(acceptLanguage) > 0 {
+				translated := ttnErr.Translate(acceptLanguage[len(acceptLanguage)-1])
+				ttnErr = &translated
 			}
 			err = ttnErr
 		}
@@ -159,6 +172,7 @@ func (w wrappedStream) SendMsg(m interface{}) error {
 	}
 	return err
 }
+
 func (w wrappedStream) RecvMsg(m interface{}) error {
 	err := w.ClientStream.RecvMsg(m)
 	if ttnErr, ok := From(err); ok {
@@ -179,4 +193,15 @@ func StreamClientInterceptor() grpc.StreamClientInterceptor {
 		}
 		return wrappedStream{s}, nil
 	}
+}
+
+// HTTPProtoErrorHandler wraps the default grpc-gateway error handler.
+func HTTPProtoErrorHandler(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
+	if ttnErr, ok := From(err); ok {
+		if acceptLanguage := r.Header.Get("Accept-Language"); acceptLanguage != "" {
+			translated := ttnErr.Translate(acceptLanguage)
+			err = &translated
+		}
+	}
+	runtime.DefaultHTTPProtoErrorHandler(ctx, mux, marshaler, w, r, err)
 }
