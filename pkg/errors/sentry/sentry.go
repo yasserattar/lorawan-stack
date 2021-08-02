@@ -54,7 +54,7 @@ func NewEvent(err error) *sentry.Event {
 		if ttnErr, ok := errors.From(err); ok && ttnErr != nil {
 			exception.Type = ttnErr.Name()
 			exception.Module = ttnErr.Namespace()
-			exception.Value = ttnErr.FormatMessage(ttnErr.PublicAttributes())
+			exception.Value = ttnErr.String()
 		}
 		if stackTrace := sentry.ExtractStacktrace(err); stackTrace != nil {
 			exception.Stacktrace = stackTrace
