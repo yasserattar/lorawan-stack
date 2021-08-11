@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetMembershipStore returns an MembershipStore on the given db (or transaction).
@@ -36,13 +36,11 @@ type membershipStore struct {
 func (s *membershipStore) queryMemberships(ctx context.Context, id *ttnpb.OrganizationOrUserIdentifiers, entityType string, includeIndirect bool) *gorm.DB {
 	accountQuery := s.query(WithoutSoftDeleted(ctx), Account{}).
 		Select(`"accounts"."id"`).
-		Where(fmt.Sprintf(`"accounts"."account_type" = '%s' AND "accounts"."uid" = ?`, id.EntityType()), id.IDString()).
-		QueryExpr()
+		Where(fmt.Sprintf(`"accounts"."account_type" = '%s' AND "accounts"."uid" = ?`, id.EntityType()), id.IDString())
 	organizationQuery := s.query(WithoutSoftDeleted(ctx), Account{}).
 		Select(`"accounts"."id"`).
 		Joins(`JOIN "memberships" ON "memberships"."entity_type" = "accounts"."account_type" AND "memberships"."entity_id" = "accounts"."account_id"`).
-		Where(`"memberships"."account_id" = (?)`, accountQuery).
-		QueryExpr()
+		Where(`"memberships"."account_id" = (?)`, accountQuery)
 	query := s.query(ctx, &Membership{})
 	if includeIndirect && id.EntityType() == "user" && entityType != "organization" {
 		query = query.Where("entity_type = ? AND (account_id = (?) OR account_id IN (?))", entityType, accountQuery, organizationQuery)
@@ -55,7 +53,7 @@ func (s *membershipStore) queryMemberships(ctx context.Context, id *ttnpb.Organi
 func (s *membershipStore) FindMemberships(ctx context.Context, id *ttnpb.OrganizationOrUserIdentifiers, entityType string, includeIndirect bool) ([]*ttnpb.EntityIdentifiers, error) {
 	defer trace.StartRegion(ctx, fmt.Sprintf("find %s memberships of %s", entityType, id.IDString())).End()
 
-	membershipsQuery := s.queryMemberships(ctx, id, entityType, includeIndirect).Select("entity_id").QueryExpr()
+	membershipsQuery := s.queryMemberships(ctx, id, entityType, includeIndirect).Select("entity_id")
 	query := s.query(ctx, modelForEntityType(entityType))
 	switch entityType {
 	case "organization":
@@ -103,11 +101,9 @@ func (s *membershipStore) FindIndirectMemberships(ctx context.Context, userID *t
 	defer trace.StartRegion(ctx, fmt.Sprintf("find indirect memberships of user on %s", entityID.EntityType())).End()
 	userQuery := s.query(WithoutSoftDeleted(ctx), Account{}).
 		Select(`"accounts"."id"`).
-		Where(`"accounts"."account_type" = 'user' AND "accounts"."uid" = ?`, userID.IDString()).
-		QueryExpr()
+		Where(`"accounts"."account_type" = 'user' AND "accounts"."uid" = ?`, userID.IDString())
 	entityQuery := s.query(ctx, modelForID(entityID), withID(entityID)).
-		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType())).
-		QueryExpr()
+		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType()))
 	query := s.query(WithoutSoftDeleted(ctx), Account{}).
 		Select(`"usr_memberships"."rights" AS "usr_rights", "accounts"."uid" AS "organization_id", "entity_memberships"."rights" AS "entity_rights"`).
 		Joins(`JOIN "memberships" "usr_memberships" ON "usr_memberships"."entity_type" = 'organization' AND "usr_memberships"."entity_id" = "accounts"."account_id"`).
@@ -137,8 +133,7 @@ func (s *membershipStore) FindIndirectMemberships(ctx context.Context, userID *t
 func (s *membershipStore) FindMembers(ctx context.Context, entityID *ttnpb.EntityIdentifiers) (map[*ttnpb.OrganizationOrUserIdentifiers]*ttnpb.Rights, error) {
 	defer trace.StartRegion(ctx, fmt.Sprintf("find members of %s", entityID.EntityType())).End()
 	entityQuery := s.query(ctx, modelForID(entityID), withID(entityID)).
-		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType())).
-		QueryExpr()
+		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType()))
 	query := s.query(ctx, Account{}).
 		Select(`"accounts"."uid" AS "uid", "accounts"."account_type" AS "account_type", "memberships"."rights" AS "rights"`).
 		Joins(`JOIN "memberships" ON "memberships"."account_id" = "accounts"."id"`).
@@ -179,11 +174,9 @@ func (s *membershipStore) GetMember(ctx context.Context, id *ttnpb.OrganizationO
 	defer trace.StartRegion(ctx, "get membership").End()
 	accountQuery := s.query(ctx, Account{}).
 		Select(`"accounts"."id"`).
-		Where(fmt.Sprintf(`"accounts"."account_type" = '%s' AND "accounts"."uid" = ?`, id.EntityType()), id.IDString()).
-		QueryExpr()
+		Where(fmt.Sprintf(`"accounts"."account_type" = '%s' AND "accounts"."uid" = ?`, id.EntityType()), id.IDString())
 	entityQuery := s.query(ctx, modelForID(entityID), withID(entityID)).
-		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType())).
-		QueryExpr()
+		Select(fmt.Sprintf(`"%ss"."id"`, entityID.EntityType()))
 	query := s.query(ctx, &Membership{}).
 		Select(`"memberships"."rights"`).
 		Where(`"memberships"."account_id" = (?)`, accountQuery).
@@ -191,7 +184,7 @@ func (s *membershipStore) GetMember(ctx context.Context, id *ttnpb.OrganizationO
 	var membership Membership
 	err := query.First(&membership).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errMembershipNotFound.WithAttributes(
 				"account_id", id.IDString(),
 				"entity_type", entityID.EntityType(),
@@ -217,7 +210,7 @@ func (s *membershipStore) SetMember(ctx context.Context, id *ttnpb.OrganizationO
 		AccountType: id.EntityType(),
 	}).Find(&account).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err
@@ -245,7 +238,7 @@ func (s *membershipStore) SetMember(ctx context.Context, id *ttnpb.OrganizationO
 			return query.Delete(&membership).Error
 		}
 		query = query.Select("rights", "updated_at")
-	} else if gorm.IsRecordNotFoundError(err) {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		if len(rights.Rights) == 0 {
 			return err
 		}
@@ -255,7 +248,7 @@ func (s *membershipStore) SetMember(ctx context.Context, id *ttnpb.OrganizationO
 			EntityType: entityTypeForID(entityID),
 		}
 		membership.SetContext(ctx)
-	} else if gorm.IsRecordNotFoundError(err) {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		return errMembershipNotFound.WithAttributes(
 			"account_id", id.IDString(),
 			"entity_type", entityID.EntityType(),

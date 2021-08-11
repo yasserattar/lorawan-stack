@@ -22,9 +22,10 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetOrganizationStore returns an OrganizationStore on the given db (or transaction).
@@ -115,7 +116,7 @@ func (s *organizationStore) GetOrganization(ctx context.Context, id *ttnpb.Organ
 	query = selectOrganizationFields(ctx, query, fieldMask)
 	var orgModel organizationWithUID
 	if err := query.First(&orgModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(id)
 		}
 		return nil, err
@@ -131,7 +132,7 @@ func (s *organizationStore) UpdateOrganization(ctx context.Context, org *ttnpb.O
 	query = selectOrganizationFields(ctx, query, fieldMask)
 	var orgModel organizationWithUID
 	if err = query.First(&orgModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(org.OrganizationIdentifiers)
 		}
 		return nil, err
@@ -171,7 +172,7 @@ func (s *organizationStore) PurgeOrganization(ctx context.Context, id *ttnpb.Org
 	query = selectOrganizationFields(ctx, query, nil)
 	var orgModel organizationWithUID
 	if err = query.First(&orgModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err

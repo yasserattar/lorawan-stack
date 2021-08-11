@@ -18,11 +18,11 @@ import (
 	"context"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 func (is *IdentityServer) listOAuthClientAuthorizations(ctx context.Context, req *ttnpb.ListOAuthClientAuthorizationsRequest) (authorizations *ttnpb.OAuthClientAuthorizations, err error) {
@@ -30,11 +30,11 @@ func (is *IdentityServer) listOAuthClientAuthorizations(ctx context.Context, req
 		return nil, err
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	authorizations = &ttnpb.OAuthClientAuthorizations{}
@@ -60,11 +60,11 @@ func (is *IdentityServer) listOAuthAccessTokens(ctx context.Context, req *ttnpb.
 		}
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	tokens = &ttnpb.OAuthAccessTokens{}

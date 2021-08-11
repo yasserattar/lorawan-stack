@@ -18,8 +18,9 @@ import (
 	"context"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetOAuthStore returns an OAuthStore on the given db (or transaction).
@@ -76,7 +77,7 @@ func (s *oauthStore) GetAuthorization(ctx context.Context, userIDs *ttnpb.UserId
 		UserID:   user.PrimaryKey(),
 	}).First(&authModel).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errAuthorizationNotFound.WithAttributes("user_id", userIDs.UserId, "client_id", clientIDs.ClientId)
 		}
 		return nil, err
@@ -103,7 +104,7 @@ func (s *oauthStore) Authorize(ctx context.Context, authorization *ttnpb.OAuthCl
 		UserID:   user.PrimaryKey(),
 	}).First(&authModel).Error
 	if err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, err
 		}
 		authModel = ClientAuthorization{
@@ -222,7 +223,7 @@ func (s *oauthStore) GetAuthorizationCode(ctx context.Context, code string) (*tt
 		Code: code,
 	}).Preload("Client").Preload("User.Account").First(&codeModel).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errAuthorizationCodeNotFound.WithAttributes("authorization_code", code)
 		}
 	}
@@ -238,7 +239,7 @@ func (s *oauthStore) DeleteAuthorizationCode(ctx context.Context, code string) e
 		Code: code,
 	}).Delete(&AuthorizationCode{}).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errAuthorizationCodeNotFound.WithAttributes("authorization_code", code)
 		}
 		return err
@@ -324,7 +325,7 @@ func (s *oauthStore) GetAccessToken(ctx context.Context, id string) (*ttnpb.OAut
 		Joins(`JOIN "clients" ON "clients"."id" = "access_tokens"."client_id"`).
 		Where(AccessToken{TokenID: id}).Scan(&tokenModel).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errAccessTokenNotFound.WithAttributes("access_token_id", id)
 		}
 	}
@@ -343,7 +344,7 @@ func (s *oauthStore) DeleteAccessToken(ctx context.Context, id string) error {
 		TokenID: id,
 	}).Delete(&AccessToken{}).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errAccessTokenNotFound.WithAttributes("access_token_id", id)
 		}
 		return err

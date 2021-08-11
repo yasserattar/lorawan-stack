@@ -16,15 +16,16 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"runtime/trace"
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetUserStore returns an UserStore on the given db (or transaction).
@@ -144,7 +145,7 @@ func (s *userStore) GetUser(ctx context.Context, id *ttnpb.UserIdentifiers, fiel
 	query = selectUserFields(ctx, query, fieldMask)
 	var userModel userWithUID
 	if err := query.First(&userModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(id)
 		}
 		return nil, err
@@ -160,7 +161,7 @@ func (s *userStore) UpdateUser(ctx context.Context, usr *ttnpb.User, fieldMask *
 	query = selectUserFields(ctx, query, fieldMask)
 	var userModel userWithUID
 	if err = query.First(&userModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(usr.UserIdentifiers)
 		}
 		return nil, err
@@ -215,7 +216,7 @@ func (s *userStore) PurgeUser(ctx context.Context, id *ttnpb.UserIdentifiers) (e
 	query = selectUserFields(ctx, query, nil)
 	var userModel userWithUID
 	if err = query.First(&userModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err

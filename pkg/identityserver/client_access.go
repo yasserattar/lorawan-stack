@@ -18,7 +18,6 @@ import (
 	"context"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/email"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
@@ -28,6 +27,7 @@ import (
 	"go.thethings.network/lorawan-stack/v3/pkg/log"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"go.thethings.network/lorawan-stack/v3/pkg/unique"
+	"gorm.io/gorm"
 )
 
 var (
@@ -174,11 +174,11 @@ func (is *IdentityServer) listClientCollaborators(ctx context.Context, req *ttnp
 	if err = rights.RequireClient(ctx, req.ClientIdentifiers, ttnpb.RIGHT_CLIENT_ALL); err != nil {
 		defer func() { collaborators = collaborators.PublicSafe() }()
 	}
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	err = is.withDatabase(ctx, func(db *gorm.DB) error {

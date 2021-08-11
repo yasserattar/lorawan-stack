@@ -301,11 +301,15 @@ func getIdentityServer(t *testing.T) (*IdentityServer, *grpc.ClientConn) {
 		if err != nil {
 			panic(err)
 		}
-		defer db.Close()
+		sqlDB, err := db.DB()
+		if err != nil {
+			panic(err)
+		}
+		defer sqlDB.Close()
 		if err = store.Initialize(db); err != nil {
 			panic(err)
 		}
-		if err = store.AutoMigrate(db).Error; err != nil {
+		if err = store.AutoMigrate(db); err != nil {
 			panic(err)
 		}
 		if err = store.Clear(db); err != nil {

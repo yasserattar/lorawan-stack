@@ -22,9 +22,10 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetClientStore returns an ClientStore on the given db (or transaction).
@@ -111,7 +112,7 @@ func (s *clientStore) GetClient(ctx context.Context, id *ttnpb.ClientIdentifiers
 	query = selectClientFields(ctx, query, fieldMask)
 	var cliModel Client
 	if err := query.First(&cliModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(id)
 		}
 		return nil, err
@@ -127,7 +128,7 @@ func (s *clientStore) UpdateClient(ctx context.Context, cli *ttnpb.Client, field
 	query = selectClientFields(ctx, query, fieldMask)
 	var cliModel Client
 	if err = query.First(&cliModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(cli.ClientIdentifiers)
 		}
 		return nil, err
@@ -166,7 +167,7 @@ func (s *clientStore) PurgeClient(ctx context.Context, id *ttnpb.ClientIdentifie
 	query = selectClientFields(ctx, query, nil)
 	var cliModel Client
 	if err := query.First(&cliModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err

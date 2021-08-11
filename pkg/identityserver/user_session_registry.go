@@ -18,10 +18,10 @@ import (
 	"context"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 func (is *IdentityServer) listUserSessions(ctx context.Context, req *ttnpb.ListUserSessionsRequest) (sessions *ttnpb.UserSessions, err error) {
@@ -29,11 +29,11 @@ func (is *IdentityServer) listUserSessions(ctx context.Context, req *ttnpb.ListU
 		return nil, err
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	paginateCtx := store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	sessions = &ttnpb.UserSessions{}

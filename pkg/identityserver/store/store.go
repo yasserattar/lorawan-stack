@@ -26,11 +26,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/log"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	defaultlogger "gorm.io/gorm/logger"
+	"gorm.io/gorm/utils"
 )
 
 func newStore(db *gorm.DB) *store { return &store{DB: db} }
@@ -40,7 +43,7 @@ type store struct {
 }
 
 func (s *store) query(ctx context.Context, model interface{}, funcs ...func(*gorm.DB) *gorm.DB) *gorm.DB {
-	query := s.DB.Model(model).Scopes(withContext(ctx), withSoftDeletedIfRequested(ctx))
+	query := s.DB.Model(model).Scopes(withContext(ctx), withSoftDeletedIfRequested(ctx, model))
 	if len(funcs) > 0 {
 		query = query.Scopes(funcs...)
 	}
@@ -51,13 +54,15 @@ func (s *store) findEntity(ctx context.Context, entityID ttnpb.IDStringer, field
 	model := modelForID(entityID)
 	query := s.query(ctx, model, withID(entityID))
 	if len(fields) == 1 && fields[0] == "id" {
-		fields[0] = s.DB.NewScope(model).TableName() + ".id"
+		stmt := &gorm.Statement{DB: s.DB}
+		stmt.Parse(model)
+		fields[0] = stmt.Schema.Table + ".id"
 	}
 	if len(fields) > 0 {
 		query = query.Select(fields)
 	}
 	if err := query.First(model).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(entityID)
 		}
 		return nil, convertError(err)
@@ -177,7 +182,11 @@ func Open(ctx context.Context, dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 	dbName := strings.TrimPrefix(dbURI.Path, "/")
-	db, err := gorm.Open("postgres", dsn)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		NowFunc: func() time.Time {
+			return cleanTime(time.Now())
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -319,25 +328,80 @@ func errNotFoundForID(id ttnpb.IDStringer) error {
 }
 
 // SetLogger sets the database logger.
-func SetLogger(db *gorm.DB, log log.Interface) {
-	db.SetLogger(logger{Interface: log})
+func SetLogger(db *gorm.DB, log log.Interface) *gorm.DB {
+	return db.Session(&gorm.Session{Logger: logger{Interface: log, LogLevel: defaultlogger.Info}})
 }
 
 type logger struct {
 	log.Interface
+	LogLevel defaultlogger.LogLevel
+}
+
+func (l logger) LogMode(level defaultlogger.LogLevel) defaultlogger.Interface {
+	newlogger := l
+	newlogger.LogLevel = level
+	return &newlogger
+}
+
+func (l logger) Info(ctx context.Context, msg string, args ...interface{}) {
+	logger := l.Interface
+	logger.Info(args)
+}
+
+func (l logger) Warn(ctx context.Context, msg string, args ...interface{}) {
+	logger := l.Interface
+	logger.Warn(args)
+}
+
+func (l logger) Error(ctx context.Context, msg string, args ...interface{}) {
+	logger := l.Interface
+	logger.Error(args)
+}
+
+func (l logger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
+	logger := l.Interface
+	elapsed := time.Since(begin)
+	sql, rows := fc()
+
+	logger = logger.WithField("source", utils.FileWithLineNum())
+
+	switch {
+	case err != nil && l.LogLevel >= defaultlogger.Error:
+		if rows == -1 {
+			logger.Error(fmt.Sprint(err, float64(elapsed.Nanoseconds())/1e6, sql, "-"))
+			return
+		} else {
+			logger.Error(fmt.Sprint(err, float64(elapsed.Nanoseconds())/1e6, sql, rows))
+			return
+		}
+	case l.LogLevel == defaultlogger.Info:
+		if rows == -1 {
+			logger.WithFields(log.Fields(
+				"duration", float64(elapsed.Nanoseconds())/1e6,
+				"query", sql,
+				"rows", "-",
+			)).Debug("Run database query")
+		} else {
+			logger.WithFields(log.Fields(
+				"duration", float64(elapsed.Nanoseconds())/1e6,
+				"query", sql,
+				"rows", rows,
+			)).Debug("Run database query")
+		}
+	}
 }
 
 // Print implements the gorm.logger interface.
 func (l logger) Print(v ...interface{}) {
+	logger := l.Interface
 	if len(v) < 3 {
-		l.Error(fmt.Sprint(v...))
+		logger.Error(fmt.Sprint(v...))
 		return
 	}
-	logger := l.Interface
 	if source, ok := v[1].(string); ok {
 		logger = logger.WithField("source", filepath.Base(source))
 	} else {
-		l.Error(fmt.Sprint(v...))
+		logger.Error(fmt.Sprint(v...))
 		return
 	}
 	switch v[0] {
@@ -367,7 +431,7 @@ func (l logger) Print(v ...interface{}) {
 			"rows", rows,
 		)).Debug("Run database query")
 	default:
-		l.Error(fmt.Sprint(v...))
+		logger.Error(fmt.Sprint(v...))
 	}
 }
 

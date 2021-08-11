@@ -70,17 +70,17 @@ func TestPagination(t *testing.T) {
 	}
 
 	t.Run("SetTotalCount", func(t *testing.T) {
-		var totalCount uint64
+		var totalCount int64
 		ctx := test.Context()
-		total := uint64(10)
+		total := int64(10)
 
-		setTotal(ctx, total)
+		setTotal(ctx, uint64(total))
 		a.So(totalCount, should.BeZeroValue)
 
 		ctx = WithPagination(ctx, 5, 1, &totalCount)
 		a.So(totalCount, should.BeZeroValue)
 
-		setTotal(ctx, total)
+		setTotal(ctx, uint64(total))
 		a.So(totalCount, should.Equal, total)
 	})
 }

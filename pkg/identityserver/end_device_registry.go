@@ -19,7 +19,6 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	clusterauth "go.thethings.network/lorawan-stack/v3/pkg/auth/cluster"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
@@ -27,6 +26,7 @@ import (
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/blacklist"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 var (
@@ -145,11 +145,11 @@ func (is *IdentityServer) listEndDevices(ctx context.Context, req *ttnpb.ListEnd
 	}
 	req.FieldMask = cleanFieldMaskPaths(ttnpb.EndDeviceFieldPathsNested, req.FieldMask, getPaths, nil)
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	devs = &ttnpb.EndDevices{}

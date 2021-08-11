@@ -44,7 +44,11 @@ var createAPIKeyCommand = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer db.Close()
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+		defer sqlDB.Close()
 
 		userID, err := cmd.Flags().GetString("user-id")
 		if err != nil {

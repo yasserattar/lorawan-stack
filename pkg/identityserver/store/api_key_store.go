@@ -21,10 +21,10 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetAPIKeyStore returns an APIKeyStore on the given db (or transaction).
@@ -115,7 +115,7 @@ func (s *apiKeyStore) GetAPIKey(ctx context.Context, id string) (*ttnpb.EntityId
 	query := s.query(ctx, APIKey{})
 	var keyModel APIKey
 	if err := query.Where(APIKey{APIKeyID: id}).First(&keyModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil, errAPIKeyNotFound.New()
 		}
 		return nil, nil, err
@@ -149,7 +149,7 @@ func (s *apiKeyStore) UpdateAPIKey(ctx context.Context, entityID *ttnpb.EntityId
 		EntityType: entityTypeForID(entityID),
 	}).First(&keyModel).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errAPIKeyNotFound.New()
 		}
 		return nil, err

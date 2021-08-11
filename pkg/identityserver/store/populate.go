@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/pbkdf2"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"go.thethings.network/lorawan-stack/v3/pkg/util/randutil"
+	"gorm.io/gorm"
 )
 
 // NewPopulator returns a new database populator with a population of the given size.

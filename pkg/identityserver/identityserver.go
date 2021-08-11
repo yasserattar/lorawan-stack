@@ -19,8 +19,6 @@ import (
 
 	pbtypes "github.com/gogo/protobuf/types"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" // Postgres database driver.
 	"go.thethings.network/lorawan-stack/v3/pkg/account"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/cluster"
@@ -35,6 +33,7 @@ import (
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/rpclog"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
 // IdentityServer implements the Identity Server component.
@@ -94,7 +93,8 @@ func New(c *component.Component, config *Config) (is *IdentityServer, err error)
 	}
 	go func() {
 		<-is.Context().Done()
-		is.db.Close()
+		sqlDB, _ := is.db.DB()
+		defer sqlDB.Close()
 	}()
 
 	is.emailTemplates, err = is.initEmailTemplates(is.Context())

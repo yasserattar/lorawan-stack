@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"go.thethings.network/lorawan-stack/v3/pkg/types"
+	"gorm.io/gorm"
 )
 
 func GetEUIStore(db *gorm.DB) EUIStore {
@@ -47,7 +47,7 @@ func (s *euiStore) incrementApplicationDevEUICounter(ctx context.Context, ids *t
 	// Check if application exists.
 	query := s.query(WithoutSoftDeleted(ctx), Application{}, withApplicationID(ids.GetApplicationId()))
 	if err := query.First(&appModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(ids)
 		}
 		return err
@@ -97,7 +97,7 @@ func (s *euiStore) issueDevEUIAddressFromBlock(ctx context.Context) (*types.EUI6
 		})
 		// Return the address assigned if no existing device uses the DevEUI
 		if err := deviceQuery.First(&EndDevice{}).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return &devEUIResult, nil
 			}
 			return nil, err
@@ -127,7 +127,7 @@ func (s *euiStore) CreateEUIBlock(ctx context.Context, euiType string, block typ
 			},
 		).Error
 		// If no block found, create a new block in the database.
-	} else if gorm.IsRecordNotFoundError(err) {
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		return s.query(ctx, EUIBlock{}).Save(
 			&EUIBlock{
 				Type:           euiType,

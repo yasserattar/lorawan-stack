@@ -18,7 +18,7 @@ import (
 	"context"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func (s *store) replaceEndDeviceLocations(ctx context.Context, endDeviceUUID string, old []EndDeviceLocation, new []EndDeviceLocation) error {

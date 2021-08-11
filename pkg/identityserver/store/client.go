@@ -119,7 +119,7 @@ func (cli Client) toPB(pb *ttnpb.Client, fieldMask *pbtypes.FieldMask) {
 	pb.ClientIdentifiers.ClientId = cli.ClientID
 	pb.CreatedAt = cleanTime(cli.CreatedAt)
 	pb.UpdatedAt = cleanTime(cli.UpdatedAt)
-	pb.DeletedAt = cleanTimePtr(cli.DeletedAt)
+	pb.DeletedAt = cleanTimePtr(&cli.DeletedAt.Time)
 	if len(fieldMask.GetPaths()) == 0 {
 		fieldMask = defaultClientFieldMask
 	}

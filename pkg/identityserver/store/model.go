@@ -17,8 +17,6 @@ package store
 import (
 	"context"
 	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 func cleanTime(t time.Time) time.Time {
@@ -31,12 +29,6 @@ func cleanTimePtr(t *time.Time) *time.Time {
 	}
 	clean := cleanTime(*t)
 	return &clean
-}
-
-func init() {
-	gorm.NowFunc = func() time.Time {
-		return cleanTime(time.Now())
-	}
 }
 
 type modelInterface interface {

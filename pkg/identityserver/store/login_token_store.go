@@ -19,9 +19,9 @@ import (
 	"runtime/trace"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetLoginTokenStore returns an LoginTokenStore on the given db (or transaction).
@@ -86,7 +86,7 @@ func (s *loginTokenStore) ConsumeLoginToken(ctx context.Context, token string) (
 	defer trace.StartRegion(ctx, "consume login token").End()
 	var loginTokenModel LoginToken
 	if err := s.query(ctx, LoginToken{}).Where(LoginToken{Token: token}).Preload("User.Account").First(&loginTokenModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errLoginTokenNotFound.New()
 		}
 		return nil, err

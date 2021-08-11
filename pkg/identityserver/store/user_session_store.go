@@ -18,8 +18,9 @@ import (
 	"context"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetUserSessionStore returns an UserSessionStore on the given db (or transaction).
@@ -86,7 +87,7 @@ func (s *userSessionStore) findSession(ctx context.Context, userIDs *ttnpb.UserI
 	query := s.query(ctx, UserSession{}).Where(UserSession{Model: Model{ID: sessionID}, UserID: user.PrimaryKey()})
 	var sessionModel UserSession
 	if err = query.Find(&sessionModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errSessionNotFound.WithAttributes("user_id", userIDs.UserId, "session_id", sessionID)
 		}
 		return nil, err
@@ -111,7 +112,7 @@ func (s *userSessionStore) GetSessionByID(ctx context.Context, sessionID string)
 	query := s.query(ctx, UserSession{}).Where(UserSession{Model: Model{ID: sessionID}})
 	var sessionModel UserSession
 	if err := query.Find(&sessionModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errSessionNotFound.WithAttributes("session_id", sessionID)
 		}
 		return nil, err
@@ -122,7 +123,7 @@ func (s *userSessionStore) GetSessionByID(ctx context.Context, sessionID string)
 	})
 	var accountModel Account
 	if err := query.Find(&accountModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errSessionNotFound.WithAttributes("user_id", sessionModel.UserID)
 		}
 		return nil, err

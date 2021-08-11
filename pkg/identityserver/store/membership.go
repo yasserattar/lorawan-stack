@@ -17,8 +17,8 @@ package store
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // Membership model.

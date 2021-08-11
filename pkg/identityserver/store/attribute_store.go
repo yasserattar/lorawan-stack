@@ -18,7 +18,7 @@ import (
 	"context"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func (s *store) replaceAttributes(ctx context.Context, entityType, entityUUID string, old []Attribute, new []Attribute) (err error) {

@@ -15,9 +15,9 @@
 package store
 
 import (
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/log"
+	"gorm.io/gorm"
 )
 
 var models []interface{}
@@ -34,13 +34,14 @@ var (
 // Check that the database contains all tables.
 func Check(db *gorm.DB) error {
 	db = db.Unscoped()
-	db.SetLogger(logger{log.Noop})
-
+	db = db.Session(&gorm.Session{Logger: logger{Interface: log.Noop}})
 	dbKind, ok := db.Get("db:kind")
+	stmt := &gorm.Statement{DB: db}
 	if !ok || (dbKind != "CockroachDB" && dbKind != "PostgreSQL") {
 		for _, model := range models {
-			if !db.HasTable(model) {
-				tableName := db.NewScope(model).GetModelStruct().TableName(db)
+			if !db.Migrator().HasTable(model) {
+				stmt.Parse(model)
+				tableName := stmt.Schema.Table
 				return errMissingTable.WithAttributes("table", tableName)
 			}
 		}
@@ -60,7 +61,8 @@ func Check(db *gorm.DB) error {
 
 	// Check that a table exists for each model.
 	for _, model := range models {
-		tableName := db.NewScope(model).TableName()
+		stmt.Parse(model)
+		tableName := stmt.Schema.Table
 		var tableExists bool
 		for _, existingTable := range existingTables {
 			if existingTable.TableName == tableName {
@@ -84,12 +86,9 @@ func Check(db *gorm.DB) error {
 
 	// Check that columns exist for each field of every model.
 	for _, model := range models {
-		scope := db.NewScope(model)
-		tableName := scope.TableName()
-		for _, field := range scope.GetModelStruct().StructFields {
-			if !field.IsNormal {
-				continue
-			}
+		stmt.Parse(model)
+		tableName := stmt.Schema.Table
+		for _, field := range stmt.Schema.Fields {
 			columnName := field.DBName
 			var columnExists bool
 			for _, existingColumn := range existingColumns {
@@ -108,7 +107,7 @@ func Check(db *gorm.DB) error {
 }
 
 // AutoMigrate automatically migrates the database for the registered models.
-func AutoMigrate(db *gorm.DB) *gorm.DB {
+func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(models...)
 }
 

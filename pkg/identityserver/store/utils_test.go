@@ -20,9 +20,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/log"
 	"go.thethings.network/lorawan-stack/v3/pkg/util/test"
+	"gorm.io/gorm"
 )
 
 var (
@@ -50,11 +50,15 @@ func WithDB(t *testing.T, f func(t *testing.T, db *gorm.DB)) {
 		if err != nil {
 			panic(err)
 		}
-		defer db.Close()
+		sqlDB, err := db.DB()
+		if err != nil {
+			panic(err)
+		}
+		defer sqlDB.Close()
 		if err = Initialize(db); err != nil {
 			panic(err)
 		}
-		if err = AutoMigrate(db).Error; err != nil {
+		if err = AutoMigrate(db); err != nil {
 			panic(err)
 		}
 		if err = Clear(db); err != nil {
@@ -65,7 +69,11 @@ func WithDB(t *testing.T, f func(t *testing.T, db *gorm.DB)) {
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+	defer sqlDB.Close()
 	db = db.Debug()
 	f(t, db)
 }

@@ -18,7 +18,7 @@ import (
 	"context"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func (s *store) replaceGatewayAntennas(ctx context.Context, gatewayUUID string, old []GatewayAntenna, new []GatewayAntenna) error {

@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type paginationOptionsKeyType struct{}
@@ -27,20 +27,20 @@ type paginationOptionsKeyType struct{}
 var paginationOptionsKey paginationOptionsKeyType
 
 type paginationOptions struct {
-	limit  uint32
-	offset uint32
-	total  *uint64
+	limit  int
+	offset int
+	total  *int64
 }
 
 // WithPagination instructs the store to paginate the results, and set the total
 // number of results into total.
-func WithPagination(ctx context.Context, limit, page uint32, total *uint64) context.Context {
+func WithPagination(ctx context.Context, limit, page uint32, total *int64) context.Context {
 	if page == 0 {
 		page = 1
 	}
 	return context.WithValue(ctx, paginationOptionsKey, paginationOptions{
-		limit:  limit,
-		offset: (page - 1) * limit,
+		limit:  int(limit),
+		offset: int((page - 1) * limit),
 		total:  total,
 	})
 }
@@ -57,11 +57,11 @@ func countTotal(ctx context.Context, db *gorm.DB) {
 // SetTotalCount if not already set.
 func setTotal(ctx context.Context, total uint64) {
 	if opts, ok := ctx.Value(paginationOptionsKey).(paginationOptions); ok && opts.total != nil && *opts.total == 0 {
-		*opts.total = total
+		*opts.total = int64(total)
 	}
 }
 
-func limitAndOffsetFromContext(ctx context.Context) (limit, offset uint32) {
+func limitAndOffsetFromContext(ctx context.Context) (limit, offset int) {
 	if opts, ok := ctx.Value(paginationOptionsKey).(paginationOptions); ok {
 		return opts.limit, opts.offset
 	}

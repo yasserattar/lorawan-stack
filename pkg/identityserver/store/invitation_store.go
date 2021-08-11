@@ -19,9 +19,9 @@ import (
 	"runtime/trace"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetInvitationStore returns an InvitationStore on the given db (or transaction).
@@ -77,7 +77,7 @@ func (s *invitationStore) GetInvitation(ctx context.Context, token string) (*ttn
 	defer trace.StartRegion(ctx, "get invitation").End()
 	var invitationModel Invitation
 	if err := s.query(ctx, Invitation{}).Where(Invitation{Token: token}).First(&invitationModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errInvitationNotFound.New()
 		}
 		return nil, err
@@ -91,7 +91,7 @@ func (s *invitationStore) SetInvitationAcceptedBy(ctx context.Context, token str
 	defer trace.StartRegion(ctx, "update invitation").End()
 	var invitationModel Invitation
 	if err := s.query(ctx, Invitation{}).Where(Invitation{Token: token}).First(&invitationModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errInvitationNotFound.New()
 		}
 		return err
@@ -118,7 +118,7 @@ func (s *invitationStore) DeleteInvitation(ctx context.Context, email string) er
 	defer trace.StartRegion(ctx, "delete invitation").End()
 	var invitationModel Invitation
 	if err := s.query(ctx, Invitation{}).Where(Invitation{Email: email}).First(&invitationModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errInvitationNotFound.New()
 		}
 		return err

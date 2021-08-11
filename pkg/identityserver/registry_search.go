@@ -17,11 +17,11 @@ package identityserver
 import (
 	"context"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth/rights"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 type registrySearch struct {
@@ -68,11 +68,11 @@ func (rs *registrySearch) SearchApplications(ctx context.Context, req *ttnpb.Sea
 		ctx = store.WithSoftDeleted(ctx, true)
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.Applications{}
@@ -129,11 +129,11 @@ func (rs *registrySearch) SearchClients(ctx context.Context, req *ttnpb.SearchCl
 		ctx = store.WithSoftDeleted(ctx, true)
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.Clients{}
@@ -193,11 +193,11 @@ func (rs *registrySearch) SearchGateways(ctx context.Context, req *ttnpb.SearchG
 		ctx = store.WithSoftDeleted(ctx, true)
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.Gateways{}
@@ -257,11 +257,11 @@ func (rs *registrySearch) SearchOrganizations(ctx context.Context, req *ttnpb.Se
 		ctx = store.WithSoftDeleted(ctx, true)
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.Organizations{}
@@ -321,11 +321,11 @@ func (rs *registrySearch) SearchUsers(ctx context.Context, req *ttnpb.SearchUser
 		ctx = store.WithSoftDeleted(ctx, true)
 	}
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.Users{}
@@ -376,11 +376,11 @@ func (rs *registrySearch) SearchEndDevices(ctx context.Context, req *ttnpb.Searc
 	}
 	req.FieldMask = cleanFieldMaskPaths(ttnpb.EndDeviceFieldPathsNested, req.FieldMask, append(getPaths, searchFields...), nil)
 	ctx = store.WithOrder(ctx, req.Order)
-	var total uint64
+	var total int64
 	ctx = store.WithPagination(ctx, req.Limit, req.Page, &total)
 	defer func() {
 		if err == nil {
-			setTotalHeader(ctx, total)
+			setTotalHeader(ctx, uint64(total))
 		}
 	}()
 	res := &ttnpb.EndDevices{}

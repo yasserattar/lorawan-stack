@@ -335,7 +335,7 @@ func (gtw Gateway) toPB(pb *ttnpb.Gateway, fieldMask *pbtypes.FieldMask) {
 	pb.GatewayIdentifiers.Eui = gtw.GatewayEUI.toPB() // Always present.
 	pb.CreatedAt = cleanTime(gtw.CreatedAt)
 	pb.UpdatedAt = cleanTime(gtw.UpdatedAt)
-	pb.DeletedAt = cleanTimePtr(gtw.DeletedAt)
+	pb.DeletedAt = cleanTimePtr(&gtw.DeletedAt.Time)
 	if len(fieldMask.GetPaths()) == 0 {
 		fieldMask = defaultGatewayFieldMask
 	}

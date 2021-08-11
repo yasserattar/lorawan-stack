@@ -87,14 +87,12 @@ require (
 	github.com/jacobsa/reqtrace v0.0.0-20150505043853-245c9e0234cb // indirect
 	github.com/jarcoal/httpmock v1.0.5
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
-	github.com/jinzhu/gorm v1.9.16
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/jtacoma/uritemplates v1.0.0
 	github.com/kr/pretty v0.2.1
 	github.com/labstack/echo/v4 v4.1.16
 	github.com/labstack/gommon v0.3.0
 	github.com/lib/pq v1.10.1
-	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/nats-io/nats-server/v2 v2.2.2
@@ -127,6 +125,7 @@ require (
 	go.packetbroker.org/api/v3 v3.10.7-tts
 	go.thethings.network/lorawan-application-payload v0.0.0-20210625082552-27377194bcca
 	go.thethings.network/lorawan-stack-legacy/v2 v2.0.2
+	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.13.0
 	gocloud.dev v0.20.0
 	gocloud.dev/pubsub/natspubsub v0.19.0
@@ -144,4 +143,6 @@ require (
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/square/go-jose.v2 v2.5.1
 	gopkg.in/yaml.v2 v2.4.0
+	gorm.io/driver/postgres v1.1.0
+	gorm.io/gorm v1.21.12
 )

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 var contextScoper func(context.Context, *gorm.DB) *gorm.DB

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetEntitySearch returns an EntitySearch on the given db (or transaction).
@@ -77,7 +77,7 @@ func (s *entitySearch) queryMetaFields(ctx context.Context, query *gorm.DB, enti
 		for k, v := range kv {
 			sub = sub.Where("key = ? AND value ILIKE ?", k, fmt.Sprintf("%%%s%%", v))
 		}
-		query = query.Where(fmt.Sprintf(`"%ss"."id" IN (?)`, entityType), sub.QueryExpr())
+		query = query.Where(fmt.Sprintf(`"%ss"."id" IN (?)`, entityType), sub)
 	}
 	return query
 }
@@ -86,7 +86,7 @@ func (s *entitySearch) queryMembership(ctx context.Context, query *gorm.DB, enti
 	if member == nil {
 		return query
 	}
-	membershipsQuery := (&membershipStore{store: s.store}).queryMemberships(ctx, member, entityType, true).Select("entity_id").QueryExpr()
+	membershipsQuery := (&membershipStore{store: s.store}).queryMemberships(ctx, member, entityType, true).Select("entity_id")
 	if entityType == "organization" {
 		query = query.Where(`"accounts"."account_type" = ? AND "accounts"."account_id" IN (?)`, entityType, membershipsQuery)
 	} else {

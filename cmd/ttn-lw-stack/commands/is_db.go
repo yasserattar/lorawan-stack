@@ -15,10 +15,10 @@
 package commands
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store/migrations"
+	"gorm.io/gorm"
 )
 
 var (
@@ -35,7 +35,11 @@ var (
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			sqlDB, err := db.DB()
+			if err != nil {
+				return err
+			}
+			defer sqlDB.Close()
 
 			if dbVersion, ok := db.Get("db:version"); ok {
 				logger.Infof("Detected database %s", dbVersion)
@@ -47,7 +51,7 @@ var (
 			}
 
 			logger.Info("Creating tables...")
-			if err = store.AutoMigrate(db).Error; err != nil {
+			if err = store.AutoMigrate(db); err != nil {
 				return err
 			}
 
@@ -64,7 +68,11 @@ var (
 			if err != nil {
 				return err
 			}
-			defer db.Close()
+			sqlDB, err := db.DB()
+			if err != nil {
+				return err
+			}
+			defer sqlDB.Close()
 
 			if dbVersion, ok := db.Get("db:version"); ok {
 				logger.Infof("Detected database %s", dbVersion)
@@ -72,7 +80,7 @@ var (
 
 			err = store.Transact(ctx, db, func(db *gorm.DB) error {
 				logger.Info("Migrating table structure...")
-				return store.AutoMigrate(db).Error
+				return store.AutoMigrate(db)
 			})
 			if err != nil {
 				return err

@@ -17,9 +17,9 @@ package migrations
 import (
 	"context"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
+	"gorm.io/gorm"
 )
 
 // Migration abstracts away the logic of a migration.

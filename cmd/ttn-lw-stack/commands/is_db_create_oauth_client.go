@@ -19,11 +19,11 @@ import (
 	"time"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
 	"github.com/spf13/cobra"
 	"go.thethings.network/lorawan-stack/v3/pkg/auth"
 	"go.thethings.network/lorawan-stack/v3/pkg/identityserver/store"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 var createOAuthClient = &cobra.Command{
@@ -38,7 +38,11 @@ var createOAuthClient = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer db.Close()
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+		defer sqlDB.Close()
 
 		clientID, err := cmd.Flags().GetString("id")
 		if err != nil {

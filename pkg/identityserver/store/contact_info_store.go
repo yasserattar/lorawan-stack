@@ -19,9 +19,9 @@ import (
 	"runtime/trace"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetContactInfoStore returns an ContactInfoStore on the given db (or transaction).
@@ -183,7 +183,7 @@ func (s *contactInfoStore) CreateValidation(ctx context.Context, validation *ttn
 	switch {
 	case err == nil:
 		return nil, errValidationAlreadyExists.New()
-	case gorm.IsRecordNotFoundError(err):
+	case errors.Is(err, gorm.ErrRecordNotFound):
 	default:
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (s *contactInfoStore) Validate(ctx context.Context, validation *ttnpb.Conta
 		Token:     validation.Token,
 	}).Find(&model).Error
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errValidationTokenNotFound.New()
 		}
 		return err
@@ -233,7 +233,7 @@ func (s *contactInfoStore) Validate(ctx context.Context, validation *ttnpb.Conta
 		EntityType:    model.EntityType,
 		ContactMethod: model.ContactMethod,
 		Value:         model.Value,
-	}).Update(ContactInfo{
+	}).Updates(ContactInfo{
 		ValidatedAt: &now,
 	}).Error
 	if err != nil {
@@ -245,7 +245,7 @@ func (s *contactInfoStore) Validate(ctx context.Context, validation *ttnpb.Conta
 			Model: Model{ID: model.EntityID},
 		}).Where(User{
 			PrimaryEmailAddress: model.Value,
-		}).Update(User{
+		}).Updates(User{
 			PrimaryEmailAddressValidatedAt: &now,
 		}).Error
 		if err != nil {
@@ -256,7 +256,7 @@ func (s *contactInfoStore) Validate(ctx context.Context, validation *ttnpb.Conta
 	err = s.query(ctx, ContactInfoValidation{}).Where(ContactInfoValidation{
 		Reference: validation.Id,
 		Token:     validation.Token,
-	}).Update(ContactInfoValidation{
+	}).Updates(ContactInfoValidation{
 		ExpiresAt: now,
 		Used:      true,
 	}).Error

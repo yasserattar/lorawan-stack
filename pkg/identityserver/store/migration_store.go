@@ -16,9 +16,10 @@ package store
 
 import (
 	"context"
+	"errors"
 	"runtime/trace"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // GetMigrationStore returns a MigrationStore on the given db (or transaction).
@@ -50,7 +51,7 @@ func (s *migrationStore) GetMigration(ctx context.Context, name string) (*Migrat
 	query := s.query(ctx, Migration{})
 	var model Migration
 	if err := query.Where(Migration{Name: name}).First(&model).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errMigrationNotFound.New()
 		}
 		return nil, err
@@ -62,7 +63,7 @@ func (s *migrationStore) DeleteMigration(ctx context.Context, name string) error
 	defer trace.StartRegion(ctx, "delete migration").End()
 	var model Migration
 	if err := s.query(ctx, Migration{}).Where(Migration{Name: name}).First(&model).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errMigrationNotFound.New()
 		}
 		return err

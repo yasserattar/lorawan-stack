@@ -17,7 +17,6 @@ package identityserver
 import (
 	"testing"
 
-	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 	"github.com/smartystreets/assertions/should"
 	"go.thethings.network/lorawan-stack/v3/pkg/errors"
@@ -25,6 +24,7 @@ import (
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"go.thethings.network/lorawan-stack/v3/pkg/util/test"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 )
 
 func TestUserSessionsRegistry(t *testing.T) {

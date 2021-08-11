@@ -22,9 +22,10 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetApplicationStore returns an ApplicationStore on the given db (or transaction).
@@ -111,7 +112,7 @@ func (s *applicationStore) GetApplication(ctx context.Context, id *ttnpb.Applica
 	query = selectApplicationFields(ctx, query, fieldMask)
 	var appModel Application
 	if err := query.First(&appModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(id)
 		}
 		return nil, err
@@ -127,7 +128,7 @@ func (s *applicationStore) UpdateApplication(ctx context.Context, app *ttnpb.App
 	query = selectApplicationFields(ctx, query, fieldMask)
 	var appModel Application
 	if err = query.First(&appModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(app.ApplicationIdentifiers)
 		}
 		return nil, err
@@ -166,7 +167,7 @@ func (s *applicationStore) PurgeApplication(ctx context.Context, id *ttnpb.Appli
 	query = selectApplicationFields(ctx, query, nil)
 	var appModel Application
 	if err := query.First(&appModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err

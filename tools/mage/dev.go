@@ -142,7 +142,11 @@ func (Dev) SQLRestore(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	defer sqlDB.Close()
 
 	b, err := ioutil.ReadFile(filepath.Join(".cache", "sqldump.sql"))
 	if err != nil {

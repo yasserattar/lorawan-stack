@@ -17,14 +17,13 @@ package store
 import (
 	"context"
 	"fmt"
-	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // SoftDelete makes a Delete operation set a DeletedAt instead of actually deleting the model.
 type SoftDelete struct {
-	DeletedAt *time.Time `gorm:"index"`
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func withSoftDeleted() func(*gorm.DB) *gorm.DB {
@@ -42,15 +41,16 @@ type deletedOptions struct {
 	OnlyDeleted    bool
 }
 
-func withSoftDeletedIfRequested(ctx context.Context) func(*gorm.DB) *gorm.DB {
+func withSoftDeletedIfRequested(ctx context.Context, model interface{}) func(*gorm.DB) *gorm.DB {
 	if opts, ok := ctx.Value(deletedOptionsKey).(*deletedOptions); ok {
 		return func(db *gorm.DB) *gorm.DB {
 			if opts.IncludeDeleted || opts.OnlyDeleted {
 				db = db.Unscoped()
 			}
-			scope := db.NewScope(db.Value)
-			if opts.OnlyDeleted && scope.HasColumn("deleted_at") {
-				db = db.Where(fmt.Sprintf("%s.deleted_at IS NOT NULL", scope.TableName()))
+			stmt := &gorm.Statement{DB: db}
+			stmt.Parse(model)
+			if opts.OnlyDeleted && db.Migrator().HasColumn(model, "deleted_at") {
+				db = db.Where(fmt.Sprintf("%s.deleted_at IS NOT NULL", stmt.Schema.Table))
 			}
 			return db
 		}

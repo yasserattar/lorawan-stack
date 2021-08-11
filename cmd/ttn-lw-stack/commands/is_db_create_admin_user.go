@@ -42,7 +42,11 @@ var createAdminUserCommand = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer db.Close()
+		sqlDB, err := db.DB()
+		if err != nil {
+			return err
+		}
+		defer sqlDB.Close()
 
 		userID, err := cmd.Flags().GetString("id")
 		if err != nil {

@@ -22,9 +22,10 @@ import (
 	"strings"
 
 	pbtypes "github.com/gogo/protobuf/types"
-	"github.com/jinzhu/gorm"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	"go.thethings.network/lorawan-stack/v3/pkg/rpcmiddleware/warning"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
+	"gorm.io/gorm"
 )
 
 // GetGatewayStore returns an GatewayStore on the given db (or transaction).
@@ -116,7 +117,7 @@ func (s *gatewayStore) GetGateway(ctx context.Context, id *ttnpb.GatewayIdentifi
 	query = selectGatewayFields(ctx, query, fieldMask)
 	var gtwModel Gateway
 	if err := query.First(&gtwModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(id)
 		}
 		return nil, err
@@ -132,7 +133,7 @@ func (s *gatewayStore) UpdateGateway(ctx context.Context, gtw *ttnpb.Gateway, fi
 	query = selectGatewayFields(ctx, query, fieldMask)
 	var gtwModel Gateway
 	if err = query.First(&gtwModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errNotFoundForID(gtw.GatewayIdentifiers)
 		}
 		return nil, err
@@ -176,7 +177,7 @@ func (s *gatewayStore) PurgeGateway(ctx context.Context, id *ttnpb.GatewayIdenti
 	query = selectGatewayFields(ctx, query, nil)
 	var gtwModel Gateway
 	if err := query.First(&gtwModel).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errNotFoundForID(id)
 		}
 		return err

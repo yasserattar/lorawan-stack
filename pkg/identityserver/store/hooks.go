@@ -14,7 +14,7 @@
 
 package store
 
-import "github.com/jinzhu/gorm"
+import "gorm.io/gorm"
 
 // AfterDelete releases the EUI of a Gateway after it is deleted.
 func (gtw *Gateway) AfterDelete(db *gorm.DB) error {
