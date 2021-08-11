@@ -25,14 +25,6 @@ import (
 	"go.thethings.network/lorawan-stack/v3/pkg/util/test/assertions/should"
 )
 
-type mockResource struct {
-	key     string
-	classes []string
-}
-
-func (r *mockResource) Key() string       { return r.key }
-func (r *mockResource) Classes() []string { return r.classes }
-
 func TestRateLimit(t *testing.T) {
 	a := assertions.New(t)
 
@@ -63,9 +55,9 @@ func TestRateLimit(t *testing.T) {
 	}
 
 	t.Run("Limit", func(t *testing.T) {
-		for _, resource := range []*mockResource{
-			{"key1", []string{"default"}},
-			{"key2", []string{"default"}},
+		for _, resource := range []ratelimit.Resource{
+			ratelimit.NewCustomResource("key1", "default"),
+			ratelimit.NewCustomResource("key2", "default"),
 		} {
 			for i := uint(0); i < maxRate; i++ {
 				limit, result := limiter.RateLimit(resource)
@@ -122,7 +114,7 @@ func TestRateLimit(t *testing.T) {
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				resource := &mockResource{key: "key", classes: tc.classes}
+				resource := ratelimit.NewCustomResource("key", tc.classes...)
 				limit, result := limiter.RateLimit(resource)
 				tc.validate(t, limit, result)
 			})
@@ -140,7 +132,7 @@ func TestRateLimit(t *testing.T) {
 		} {
 			t.Run(tc.name, func(t *testing.T) {
 				a := assertions.New(t)
-				resource := &mockResource{key: "resource", classes: []string{"one", "two"}}
+				resource := ratelimit.NewCustomResource("resource", "one", "two")
 
 				a.So(tc.assertErr(ratelimit.Require(tc.limiter, resource)), should.BeTrue)
 			})
@@ -166,7 +158,7 @@ func TestRateLimit(t *testing.T) {
 		limiter, err := ratelimit.New(test.Context(), conf, config.BlobConfig{})
 		a.So(err, should.BeNil)
 
-		resource := &mockResource{key: "key", classes: []string{"assoc1"}}
+		resource := ratelimit.NewCustomResource("resource", "assoc1")
 		limit, result := limiter.RateLimit(resource)
 		a.So(limit, should.BeFalse)
 		a.So(result.Limit, should.Equal, 200)

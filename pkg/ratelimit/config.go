@@ -57,7 +57,7 @@ func New(ctx context.Context, conf config.RateLimiting, blobConf config.BlobConf
 
 	l := &muxRateLimiter{
 		defaultLimiter: defaultLimiter,
-		limiters:       make(map[string]Interface, len(profiles)),
+		limiters:       make(map[string]*rateLimiterChooser, len(profiles)),
 	}
 	for _, profile := range profiles {
 		if len(profile.Associations) == 0 {
@@ -68,7 +68,10 @@ func New(ctx context.Context, conf config.RateLimiting, blobConf config.BlobConf
 			return nil, err
 		}
 		for _, assocName := range profile.Associations {
-			l.limiters[assocName] = limiter
+			if _, ok := l.limiters[assocName]; !ok {
+				l.limiters[assocName] = &rateLimiterChooser{}
+			}
+			l.limiters[assocName].add(rateLimiterWithSubnet{limiter, profile.OnlySubnets, profile.ExcludeSubnets})
 		}
 	}
 	return l, nil

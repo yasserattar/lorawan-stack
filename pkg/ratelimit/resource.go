@@ -35,29 +35,43 @@ type Resource interface {
 	// based on the limits of the first class that matches the configuration. If no
 	// class is matched, the limiter instance can fallback to a default rate limit.
 	Classes() []string
+	// IPAddress returns the IP address that consumes the resource. The second return value
+	// is false if the IP address is not available
+	IPAddress() (net.IP, bool)
 }
 
 type resource struct {
 	key     string
 	classes []string
+	ip      net.IP
+	hasIP   bool
 }
 
 func (r *resource) Key() string       { return r.key }
 func (r *resource) Classes() []string { return r.classes }
+func (r *resource) IPAddress() (net.IP, bool) {
+	return r.ip, r.hasIP
+}
 
 // httpRequestResource represents an HTTP request. Avoid using directly, use HTTPMiddleware instead.
 func httpRequestResource(r *http.Request, class string) Resource {
+	ip := httpRemoteIP(r)
 	return &resource{
-		key:     fmt.Sprintf("%s:ip:%s:url:%s", class, httpRemoteIP(r), r.URL.Path),
+		key:     fmt.Sprintf("%s:ip:%s:url:%s", class, ip, r.URL.Path),
 		classes: []string{class, "http"},
+		ip:      net.ParseIP(ip),
+		hasIP:   true,
 	}
 }
 
 // echoRequestResource represents an HTTP request. Avoid using directly, use EchoMiddleware instead.
 func echoRequestResource(c echo.Context, class string) Resource {
+	ip := c.RealIP()
 	return &resource{
-		key:     fmt.Sprintf("%s:ip:%s:url:%s", class, c.RealIP(), c.Request().URL.Path),
+		key:     fmt.Sprintf("%s:ip:%s:url:%s", class, ip, c.Request().URL.Path),
 		classes: []string{class, "http"},
+		ip:      net.ParseIP(ip),
+		hasIP:   true,
 	}
 }
 
@@ -70,6 +84,8 @@ func grpcMethodResource(ctx context.Context, fullMethod string, req interface{})
 	return &resource{
 		key:     key,
 		classes: []string{fmt.Sprintf("grpc:method:%s", fullMethod), "grpc:method"},
+		ip:      net.ParseIP(grpcRemoteIP(ctx)),
+		hasIP:   true,
 	}
 }
 
@@ -82,6 +98,8 @@ func grpcStreamAcceptResource(ctx context.Context, fullMethod string) Resource {
 	return &resource{
 		key:     key,
 		classes: []string{fmt.Sprintf("grpc:stream:accept:%s", fullMethod), "grpc:stream:accept"},
+		ip:      net.ParseIP(grpcRemoteIP(ctx)),
+		hasIP:   true,
 	}
 }
 
@@ -90,6 +108,8 @@ func grpcStreamUpResource(ctx context.Context, fullMethod string) Resource {
 	return &resource{
 		key:     fmt.Sprintf("grpc:stream:up:%s:streamID:%s", fullMethod, events.NewCorrelationID()),
 		classes: []string{fmt.Sprintf("grpc:stream:up:%s", fullMethod), "grpc:stream:up"},
+		ip:      net.ParseIP(grpcRemoteIP(ctx)),
+		hasIP:   true,
 	}
 }
 
@@ -110,6 +130,8 @@ func GatewayAcceptMQTTConnectionResource(remoteAddr string) Resource {
 	return &resource{
 		key:     fmt.Sprintf("gs:accept:mqtt:ip:%s", remoteIP),
 		classes: []string{"gs:accept:mqtt"},
+		ip:      net.ParseIP(remoteIP),
+		hasIP:   true,
 	}
 }
 
@@ -118,6 +140,8 @@ func GatewayUDPTrafficResource(addr *net.UDPAddr) Resource {
 	return &resource{
 		key:     fmt.Sprintf("gs:up:udp:ip:%s", addr.IP.String()),
 		classes: []string{"gs:up:udp", "gs:up"},
+		ip:      addr.IP,
+		hasIP:   true,
 	}
 }
 
@@ -130,6 +154,8 @@ func ApplicationAcceptMQTTConnectionResource(remoteAddr string) Resource {
 	return &resource{
 		key:     fmt.Sprintf("as:accept:mqtt:ip:%s", remoteIP),
 		classes: []string{"as:accept:mqtt"},
+		ip:      net.ParseIP(remoteIP),
+		hasIP:   true,
 	}
 }
 
@@ -159,5 +185,10 @@ func ApplicationWebhooksDownResource(ctx context.Context, ids ttnpb.EndDeviceIde
 
 // NewCustomResource returns a new resource. It is used internally by other components.
 func NewCustomResource(key string, classes ...string) Resource {
-	return &resource{key, classes}
+	return &resource{key: key, classes: classes}
+}
+
+// NewCustomResourceWithIP returns a new resource.
+func NewCustomResourceWithIP(key string, ip net.IP, classes ...string) Resource {
+	return &resource{key: key, classes: classes, ip: ip, hasIP: true}
 }

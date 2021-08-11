@@ -64,14 +64,16 @@ func (l *rateLimiter) RateLimit(resource Resource) (bool, Result) {
 // If no rate limiting profile is set for a resource class, then no rate limits are applied.
 type muxRateLimiter struct {
 	defaultLimiter Interface
-	limiters       map[string]Interface
+	limiters       map[string]*rateLimiterChooser
 }
 
 // RateLimit implements ratelimit.Interface.
 func (l *muxRateLimiter) RateLimit(resource Resource) (bool, Result) {
 	for _, c := range resource.Classes() {
-		if limiter, ok := l.limiters[c]; ok {
-			return limiter.RateLimit(resource)
+		if limiters, ok := l.limiters[c]; ok {
+			if limiter, ok := limiters.ForResource(resource); ok {
+				return limiter.RateLimit(resource)
+			}
 		}
 	}
 	return l.defaultLimiter.RateLimit(resource)

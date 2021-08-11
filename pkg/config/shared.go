@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -467,10 +468,12 @@ func (f MQTTConfigProviderFunc) GetMQTTConfig(ctx context.Context) (*MQTT, error
 
 // RateLimitingProfile represents configuration for a rate limiting class.
 type RateLimitingProfile struct {
-	Name         string   `name:"name" description:"Rate limiting class name"`
-	MaxPerMin    uint     `name:"max-per-min" yaml:"max-per-min" description:"Maximum allowed rate (per minute)"`
-	MaxBurst     uint     `name:"max-burst" yaml:"max-burst" description:"Maximum rate allowed for short bursts"`
-	Associations []string `name:"associations" description:"List of classes to apply this profile on"`
+	Name           string      `name:"name" description:"Rate limiting class name"`
+	MaxPerMin      uint        `name:"max-per-min" yaml:"max-per-min" description:"Maximum allowed rate (per minute)"`
+	MaxBurst       uint        `name:"max-burst" yaml:"max-burst" description:"Maximum rate allowed for short bursts"`
+	Associations   []string    `name:"associations" description:"List of classes to apply this profile on"`
+	OnlySubnets    []net.IPNet `name:"only-subnets" description:"Subnets for which rate limiting will be applied. If empty, 0.0.0.0/0 is assumed"`
+	ExcludeSubnets []net.IPNet `name:"exclude-subnets" description:"Subnets for which rate limiting will not be applied."`
 }
 
 // RateLimitingMemory represents configuration for the in-memory rate limiting store.
