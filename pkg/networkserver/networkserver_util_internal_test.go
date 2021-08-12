@@ -1908,6 +1908,12 @@ func StartTest(ctx context.Context, conf TestConfig) (*NetworkServer, context.Co
 	if conf.NetworkServer.CooldownWindow == 0 {
 		conf.NetworkServer.CooldownWindow = conf.NetworkServer.DeduplicationWindow + time.Nanosecond
 	}
+	if conf.NetworkServer.ApplicationUplinkQueue.NumConsumers == 0 {
+		conf.NetworkServer.ApplicationUplinkQueue.NumConsumers = 1
+	}
+	if conf.NetworkServer.DownlinkTaskQueue.NumConsumers == 0 {
+		conf.NetworkServer.DownlinkTaskQueue.NumConsumers = 1
+	}
 
 	cmpOpts := []component.Option{
 		component.WithClusterNew(func(context.Context, *cluster.Config, ...cluster.Option) (cluster.Cluster, error) {
