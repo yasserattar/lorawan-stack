@@ -15,6 +15,7 @@
 package errors
 
 import (
+	"path/filepath"
 	"runtime"
 
 	"github.com/pkg/errors"
@@ -41,4 +42,17 @@ func (s *stack) StackTrace() errors.StackTrace {
 		f[i] = errors.Frame((*s)[i])
 	}
 	return f
+}
+
+func (s *stack) Location() (funcName, fileName string, line int) {
+	if s == nil {
+		return "", "", 0
+	}
+	pc := (*s)[0]
+	f := runtime.FuncForPC(pc)
+	if f == nil {
+		return "", "", 0
+	}
+	file, line := f.FileLine(pc)
+	return f.Name(), filepath.Base(file), line
 }
