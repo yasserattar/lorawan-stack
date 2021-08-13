@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/smartystreets/assertions"
+	"go.thethings.network/lorawan-stack/v3/pkg/errors"
 	. "go.thethings.network/lorawan-stack/v3/pkg/networkserver"
 	"go.thethings.network/lorawan-stack/v3/pkg/ttnpb"
 	"go.thethings.network/lorawan-stack/v3/pkg/util/test"
@@ -60,7 +61,7 @@ func handleDownlinkTaskQueueTest(ctx context.Context, q DownlinkTaskQueue, consu
 		respCh     chan<- TaskPopFuncResponse
 	}
 
-	popCtx := context.WithValue(ctx, &struct{}{}, "pop")
+	popCtx, cancelPopCtx := context.WithCancel(context.WithValue(ctx, &struct{}{}, "pop"))
 	nextPop := make(map[string]chan struct{}, len(consumerIDs))
 	for _, consumerID := range consumerIDs {
 		nextPop[consumerID] = make(chan struct{})
@@ -70,7 +71,11 @@ func handleDownlinkTaskQueueTest(ctx context.Context, q DownlinkTaskQueue, consu
 	for _, consumerID := range consumerIDs {
 		go func(consumerID string) {
 			for {
-				<-nextPop[consumerID]
+				select {
+				case <-nextPop[consumerID]:
+				case <-popCtx.Done():
+					errCh <- popCtx.Err()
+				}
 				select {
 				case <-ctx.Done():
 					return
@@ -214,6 +219,14 @@ func handleDownlinkTaskQueueTest(ctx context.Context, q DownlinkTaskQueue, consu
 		pbs[2]: {time.Unix(42, 42).UTC()},
 	})
 
+	cancelPopCtx()
+	for range consumerIDs {
+		select {
+		case err := <-errCh:
+			a.So(errors.IsCanceled(err), should.BeTrue)
+		case <-ctx.Done():
+		}
+	}
 }
 
 // HandleDownlinkTaskQueueTest runs a DownlinkTaskQueue test suite on reg.
