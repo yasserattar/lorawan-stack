@@ -17,7 +17,6 @@ package test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -346,34 +345,26 @@ func handleApplicationUplinkQueueTest(ctx context.Context, q ApplicationUplinkQu
 }
 
 // HandleApplicationUplinkQueueTest runs a ApplicationUplinkQueue test suite on reg.
-func HandleApplicationUplinkQueueTest(t *testing.T, q ApplicationUplinkQueue) {
+func HandleApplicationUplinkQueueTest(t *testing.T, q ApplicationUplinkQueue, consumerIDs []string) {
 	t.Helper()
-	for _, consumers := range []int{1, 2, 4, 8} {
-		consumerIDs := make([]string, consumers)
-		for i := 0; i < consumers; i++ {
-			consumerIDs[i] = fmt.Sprintf("consumer-%d-%d", consumers, i)
-		}
-		t.Run(fmt.Sprintf("Consumers=%d", consumers), func(t *testing.T) {
-			test.RunTest(t, test.TestConfig{
-				Func: func(ctx context.Context, a *assertions.Assertion) {
-					t.Helper()
-					test.RunSubtestFromContext(ctx, test.SubtestConfig{
-						Name: "1st run",
-						Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
-							handleApplicationUplinkQueueTest(ctx, q, consumerIDs)
-						},
-					})
-					if t.Failed() {
-						t.Skip("Skipping 2nd run")
-					}
-					test.RunSubtestFromContext(ctx, test.SubtestConfig{
-						Name: "2nd run",
-						Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
-							handleApplicationUplinkQueueTest(ctx, q, consumerIDs)
-						},
-					})
+	test.RunTest(t, test.TestConfig{
+		Func: func(ctx context.Context, a *assertions.Assertion) {
+			t.Helper()
+			test.RunSubtestFromContext(ctx, test.SubtestConfig{
+				Name: "1st run",
+				Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
+					handleApplicationUplinkQueueTest(ctx, q, consumerIDs)
 				},
 			})
-		})
-	}
+			if t.Failed() {
+				t.Skip("Skipping 2nd run")
+			}
+			test.RunSubtestFromContext(ctx, test.SubtestConfig{
+				Name: "2nd run",
+				Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
+					handleApplicationUplinkQueueTest(ctx, q, consumerIDs)
+				},
+			})
+		},
+	})
 }

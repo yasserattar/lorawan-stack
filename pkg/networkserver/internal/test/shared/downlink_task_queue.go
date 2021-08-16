@@ -16,7 +16,6 @@ package test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -230,34 +229,26 @@ func handleDownlinkTaskQueueTest(ctx context.Context, q DownlinkTaskQueue, consu
 }
 
 // HandleDownlinkTaskQueueTest runs a DownlinkTaskQueue test suite on reg.
-func HandleDownlinkTaskQueueTest(t *testing.T, q DownlinkTaskQueue) {
+func HandleDownlinkTaskQueueTest(t *testing.T, q DownlinkTaskQueue, consumerIDs []string) {
 	t.Helper()
-	for _, consumers := range []int{1, 2, 4, 8} {
-		consumerIDs := make([]string, consumers)
-		for i := 0; i < consumers; i++ {
-			consumerIDs[i] = fmt.Sprintf("consumer-%d-%d", consumers, i)
-		}
-		t.Run(fmt.Sprintf("Consumers=%d", consumers), func(t *testing.T) {
-			test.RunTest(t, test.TestConfig{
-				Func: func(ctx context.Context, a *assertions.Assertion) {
-					t.Helper()
-					test.RunSubtestFromContext(ctx, test.SubtestConfig{
-						Name: "1st run",
-						Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
-							handleDownlinkTaskQueueTest(ctx, q, consumerIDs)
-						},
-					})
-					if t.Failed() {
-						t.Skip("Skipping 2nd run")
-					}
-					test.RunSubtestFromContext(ctx, test.SubtestConfig{
-						Name: "2st run",
-						Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
-							handleDownlinkTaskQueueTest(ctx, q, consumerIDs)
-						},
-					})
+	test.RunTest(t, test.TestConfig{
+		Func: func(ctx context.Context, a *assertions.Assertion) {
+			t.Helper()
+			test.RunSubtestFromContext(ctx, test.SubtestConfig{
+				Name: "1st run",
+				Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
+					handleDownlinkTaskQueueTest(ctx, q, consumerIDs)
 				},
 			})
-		})
-	}
+			if t.Failed() {
+				t.Skip("Skipping 2nd run")
+			}
+			test.RunSubtestFromContext(ctx, test.SubtestConfig{
+				Name: "2st run",
+				Func: func(ctx context.Context, t *testing.T, a *assertions.Assertion) {
+					handleDownlinkTaskQueueTest(ctx, q, consumerIDs)
+				},
+			})
+		},
+	})
 }
