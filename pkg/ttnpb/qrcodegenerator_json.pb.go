@@ -33,7 +33,7 @@ func (x *GenerateEndDeviceQRCodeRequest) MarshalProtoJSON(s *jsonplugin.MarshalS
 		s.WriteMoreIf(&wroteField)
 		s.WriteObjectField("image")
 		// NOTE: GenerateEndDeviceQRCodeRequest_Image does not seem to implement MarshalProtoJSON.
-		gogo.MarshalMessage(s, x)
+		gogo.MarshalMessage(s, x.Image)
 	}
 	s.WriteObjectEnd()
 }
