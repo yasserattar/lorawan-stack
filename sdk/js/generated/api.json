@@ -2737,7 +2737,7 @@
           "fields": [
             {
               "name": "count",
-              "description": "",
+              "description": "Number of stored messages by end device ID.",
               "label": "repeated",
               "type": "CountEntry",
               "longType": "GetStoredApplicationUpCountResponse.CountEntry",

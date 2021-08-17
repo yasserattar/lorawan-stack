@@ -114,6 +114,7 @@ message GetStoredApplicationUpCountRequest {
 
 
 message GetStoredApplicationUpCountResponse {
+  // Number of stored messages by end device ID.
   map<string,uint32> count = 1;
 }
 

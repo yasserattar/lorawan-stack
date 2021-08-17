@@ -1154,7 +1154,7 @@ The NsAs service connects a Network Server to an Application Server.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `count` | [`GetStoredApplicationUpCountResponse.CountEntry`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry) | repeated |  |
+| `count` | [`GetStoredApplicationUpCountResponse.CountEntry`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry) | repeated | Number of stored messages by end device ID. |
 
 ### <a name="ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry">Message `GetStoredApplicationUpCountResponse.CountEntry`</a>
 

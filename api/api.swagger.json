@@ -14921,7 +14921,8 @@
           "additionalProperties": {
             "type": "integer",
             "format": "int64"
-          }
+          },
+          "description": "Number of stored messages by end device ID."
         }
       }
     },

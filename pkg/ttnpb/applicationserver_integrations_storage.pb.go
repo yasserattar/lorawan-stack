@@ -244,6 +244,7 @@ func (m *GetStoredApplicationUpCountRequest) GetLast() *types.Duration {
 }
 
 type GetStoredApplicationUpCountResponse struct {
+	// Number of stored messages by end device ID.
 	Count                map[string]uint32 `protobuf:"bytes,1,rep,name=count,proto3" json:"count,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
