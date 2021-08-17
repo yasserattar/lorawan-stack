@@ -47,6 +47,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/TheThingsIndustries/mystique v0.0.0-20200127144137-4aa959111fe7
+	github.com/TheThingsIndustries/protoc-gen-go-json v0.2.0
 	github.com/TheThingsNetwork/go-cayenne-lib v1.1.0
 	github.com/aws/aws-sdk-go v1.38.31
 	github.com/blang/semver v3.5.1+incompatible
@@ -66,7 +67,7 @@ require (
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
 	// NOTE: github.com/golang/protobuf is actually pinned to v1.3.5 above.
 	github.com/golang/protobuf v1.5.1
-	github.com/google/go-cmp v0.5.5
+	github.com/google/go-cmp v0.5.6
 	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
