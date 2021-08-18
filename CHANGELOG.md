@@ -15,6 +15,7 @@ For details about compatibility between different releases, see the **Commitment
 - CLI warnings about using the `--all` flag.
 - Packet Broker network listed switch in the Console.
 - Improved errors for invalid command-line flags.
+- CLI command to decode raw LoRaWAN frames (`ttn-lw-cli lorawan decode`), useful for debugging purposes.
 
 ### Changed
 
