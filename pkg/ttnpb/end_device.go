@@ -189,6 +189,8 @@ func (v *MACSettings) FieldIsZero(p string) bool {
 		return v.MaxDutyCycle == nil
 	case "max_duty_cycle.value":
 		return v.MaxDutyCycle.FieldIsZero("value")
+	case "network_initiated_downlink_interval":
+		return v.NetworkInitiatedDownlinkInterval == nil
 	case "ping_slot_data_rate_index":
 		return v.PingSlotDataRateIndex == nil
 	case "ping_slot_data_rate_index.value":
@@ -993,6 +995,8 @@ func (v *EndDevice) FieldIsZero(p string) bool {
 		return v.MacSettings.FieldIsZero("max_duty_cycle")
 	case "mac_settings.max_duty_cycle.value":
 		return v.MacSettings.FieldIsZero("max_duty_cycle.value")
+	case "mac_settings.network_initiated_downlink_interval":
+		return v.MacSettings.FieldIsZero("network_initiated_downlink_interval")
 	case "mac_settings.ping_slot_data_rate_index":
 		return v.MacSettings.FieldIsZero("ping_slot_data_rate_index")
 	case "mac_settings.ping_slot_data_rate_index.value":

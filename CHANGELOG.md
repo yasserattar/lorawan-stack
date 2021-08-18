@@ -16,6 +16,7 @@ For details about compatibility between different releases, see the **Commitment
 - Packet Broker network listed switch in the Console.
 - Improved errors for invalid command-line flags.
 - Validation of entity attributes in the Console, with regards to maximum length for keys and values.
+- Add a new `mac_settings.network_initiated_downlink_interval` field that can be configured to set the minimum interval between a network initiated downlink (Class B & Class C) and an arbitrary downlink per device.
 
 ### Changed
 

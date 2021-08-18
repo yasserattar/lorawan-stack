@@ -1048,6 +1048,18 @@ func (m *MACSettings) ValidateFields(paths ...string) error {
 				}
 			}
 
+		case "network_initiated_downlink_interval":
+
+			if v, ok := interface{}(m.GetNetworkInitiatedDownlinkInterval()).(interface{ ValidateFields(...string) error }); ok {
+				if err := v.ValidateFields(subs...); err != nil {
+					return MACSettingsValidationError{
+						field:  "network_initiated_downlink_interval",
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
 		default:
 			return MACSettingsValidationError{
 				field:  name,

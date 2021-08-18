@@ -1235,6 +1235,15 @@ func (dst *MACSettings) SetFields(src *MACSettings, paths ...string) error {
 					dst.DesiredMaxEirp = nil
 				}
 			}
+		case "network_initiated_downlink_interval":
+			if len(subs) > 0 {
+				return fmt.Errorf("'network_initiated_downlink_interval' has no subfields, but %s were specified", subs)
+			}
+			if src != nil {
+				dst.NetworkInitiatedDownlinkInterval = src.NetworkInitiatedDownlinkInterval
+			} else {
+				dst.NetworkInitiatedDownlinkInterval = nil
+			}
 
 		default:
 			return fmt.Errorf("invalid field: '%s'", name)

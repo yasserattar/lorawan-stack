@@ -571,6 +571,18 @@ outer:
 	return chs
 }
 
+const defaultNetworkInitiatedDownlinkInterval = time.Second
+
+func DeviceNetworkInitiatedDownlinkInterval(dev *ttnpb.EndDevice, defaults ttnpb.MACSettings) time.Duration {
+	if t := dev.GetMacSettings().GetNetworkInitiatedDownlinkInterval(); t != nil {
+		return *t
+	}
+	if t := defaults.GetNetworkInitiatedDownlinkInterval(); t != nil {
+		return *t
+	}
+	return defaultNetworkInitiatedDownlinkInterval
+}
+
 func NewState(dev *ttnpb.EndDevice, fps *frequencyplans.Store, defaults ttnpb.MACSettings) (*ttnpb.MACState, error) {
 	fp, phy, err := DeviceFrequencyPlanAndBand(dev, fps)
 	if err != nil {

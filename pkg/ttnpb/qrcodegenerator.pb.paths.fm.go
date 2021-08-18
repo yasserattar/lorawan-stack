@@ -95,6 +95,7 @@ var GenerateEndDeviceQRCodeRequestFieldPathsNested = []string{
 	"end_device.mac_settings.factory_preset_frequencies",
 	"end_device.mac_settings.max_duty_cycle",
 	"end_device.mac_settings.max_duty_cycle.value",
+	"end_device.mac_settings.network_initiated_downlink_interval",
 	"end_device.mac_settings.ping_slot_data_rate_index",
 	"end_device.mac_settings.ping_slot_data_rate_index.value",
 	"end_device.mac_settings.ping_slot_frequency",
