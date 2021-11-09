@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -43,6 +44,8 @@ import (
 
 func TestProcessDownlinkTask(t *testing.T) {
 	// TODO: Refactor. (https://github.com/TheThingsNetwork/lorawan-stack/issues/2475)
+
+	errors.GenerateCorrelationIDs(false)
 
 	const appIDString = "process-downlink-test-app-id"
 	appID := ttnpb.ApplicationIdentifiers{ApplicationId: appIDString}
@@ -2541,7 +2544,7 @@ func TestProcessDownlinkTask(t *testing.T) {
 				_, ctx, env, stop := StartTest(ctx, TestConfig{
 					NetworkServer: DefaultConfig,
 					TaskStarter: component.StartTaskFunc(func(conf *component.TaskConfig) {
-						if conf.ID != DownlinkProcessTaskName {
+						if !strings.HasPrefix(conf.ID, DownlinkProcessTaskName) {
 							component.DefaultStartTask(conf)
 							return
 						}
@@ -2556,7 +2559,7 @@ func TestProcessDownlinkTask(t *testing.T) {
 				if tc.CreateDevice != nil {
 					created, ctx = MustCreateDevice(ctx, env.Devices, tc.CreateDevice)
 				}
-				test.Must(nil, env.DownlinkTasks.Add(ctx, ttnpb.EndDeviceIdentifiers{
+				test.Must(nil, env.DownlinkTaskQueue.Queue.Add(ctx, ttnpb.EndDeviceIdentifiers{
 					ApplicationIdentifiers: appID,
 					DeviceId:               devID,
 				}, time.Now(), true))

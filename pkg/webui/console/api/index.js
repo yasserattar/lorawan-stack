@@ -136,6 +136,7 @@ export default {
     get: tts.Applications.getById.bind(tts.Applications),
     delete: tts.Applications.deleteById.bind(tts.Applications),
     purge: tts.Applications.purgeById.bind(tts.Applications),
+    restore: tts.Applications.restoreById.bind(tts.Applications),
     create: tts.Applications.create.bind(tts.Applications),
     update: tts.Applications.updateById.bind(tts.Applications),
     eventsSubscribe: tts.Applications.openStream.bind(tts.Applications),
@@ -242,6 +243,7 @@ export default {
     getGlobalConf: tts.Gateways.getGlobalConf.bind(tts.Gateways),
     delete: tts.Gateways.deleteById.bind(tts.Gateways),
     purge: tts.Gateways.purgeById.bind(tts.Gateways),
+    restore: tts.Gateways.restoreById.bind(tts.Gateways),
     create: tts.Gateways.create.bind(tts.Gateways),
     update: tts.Gateways.updateById.bind(tts.Gateways),
     stats: tts.Gateways.getStatisticsById.bind(tts.Gateways),
@@ -311,6 +313,7 @@ export default {
   },
   ns: {
     generateDevAddress: tts.Ns.generateDevAddress.bind(tts.Ns),
+    getDefaultMacSettings: tts.Ns.getDefaultMacSettings.bind(tts.Ns),
   },
   is: {
     getConfiguration: tts.Is.getConfiguration.bind(tts.Is),
@@ -329,6 +332,7 @@ export default {
     eventsSubscribe: tts.Organizations.openStream.bind(tts.Organizations),
     delete: tts.Organizations.deleteById.bind(tts.Organizations),
     purge: tts.Organizations.purgeById.bind(tts.Organizations),
+    restore: tts.Organizations.restoreById.bind(tts.Organizations),
     update: tts.Organizations.updateById.bind(tts.Organizations),
     apiKeys: {
       get: tts.Organizations.ApiKeys.getById.bind(tts.Organizations.ApiKeys),

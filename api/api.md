@@ -47,6 +47,9 @@
   - [Service `AsEndDeviceRegistry`](#ttn.lorawan.v3.AsEndDeviceRegistry)
   - [Service `NsAs`](#ttn.lorawan.v3.NsAs)
 - [File `lorawan-stack/api/applicationserver_integrations_storage.proto`](#lorawan-stack/api/applicationserver_integrations_storage.proto)
+  - [Message `GetStoredApplicationUpCountRequest`](#ttn.lorawan.v3.GetStoredApplicationUpCountRequest)
+  - [Message `GetStoredApplicationUpCountResponse`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse)
+  - [Message `GetStoredApplicationUpCountResponse.CountEntry`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry)
   - [Message `GetStoredApplicationUpRequest`](#ttn.lorawan.v3.GetStoredApplicationUpRequest)
   - [Service `ApplicationUpStorage`](#ttn.lorawan.v3.ApplicationUpStorage)
 - [File `lorawan-stack/api/applicationserver_packages.proto`](#lorawan-stack/api/applicationserver_packages.proto)
@@ -1129,6 +1132,37 @@ The NsAs service connects a Network Server to an Application Server.
 
 ## <a name="lorawan-stack/api/applicationserver_integrations_storage.proto">File `lorawan-stack/api/applicationserver_integrations_storage.proto`</a>
 
+### <a name="ttn.lorawan.v3.GetStoredApplicationUpCountRequest">Message `GetStoredApplicationUpCountRequest`</a>
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `application_ids` | [`ApplicationIdentifiers`](#ttn.lorawan.v3.ApplicationIdentifiers) |  | Count upstream messages from all end devices of an application. Cannot be used in conjunction with end_device_ids. |
+| `end_device_ids` | [`EndDeviceIdentifiers`](#ttn.lorawan.v3.EndDeviceIdentifiers) |  | Count upstream messages from a single end device. Cannot be used in conjunction with application_ids. |
+| `type` | [`string`](#string) |  | Count upstream messages of a specific type. If not set, then all upstream messages are returned. |
+| `after` | [`google.protobuf.Timestamp`](#google.protobuf.Timestamp) |  | Count upstream messages after this timestamp only. Cannot be used in conjunction with last. |
+| `before` | [`google.protobuf.Timestamp`](#google.protobuf.Timestamp) |  | Count upstream messages before this timestamp only. Cannot be used in conjunction with last. |
+| `f_port` | [`google.protobuf.UInt32Value`](#google.protobuf.UInt32Value) |  | Count uplinks on a specific FPort only. |
+| `last` | [`google.protobuf.Duration`](#google.protobuf.Duration) |  | Count upstream messages that have arrived in the last minutes or hours. Cannot be used in conjunction with after and before. |
+
+#### Field Rules
+
+| Field | Validations |
+| ----- | ----------- |
+| `type` | <p>`string.in`: `[ uplink_message join_accept downlink_ack downlink_nack downlink_sent downlink_failed downlink_queued downlink_queue_invalidated location_solved service_data]`</p> |
+
+### <a name="ttn.lorawan.v3.GetStoredApplicationUpCountResponse">Message `GetStoredApplicationUpCountResponse`</a>
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `count` | [`GetStoredApplicationUpCountResponse.CountEntry`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry) | repeated | Number of stored messages by end device ID. |
+
+### <a name="ttn.lorawan.v3.GetStoredApplicationUpCountResponse.CountEntry">Message `GetStoredApplicationUpCountResponse.CountEntry`</a>
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `key` | [`string`](#string) |  |  |
+| `value` | [`uint32`](#uint32) |  |  |
+
 ### <a name="ttn.lorawan.v3.GetStoredApplicationUpRequest">Message `GetStoredApplicationUpRequest`</a>
 
 | Field | Type | Label | Description |
@@ -1158,6 +1192,7 @@ The ApplicationUpStorage service can be used to query stored application upstrea
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | `GetStoredApplicationUp` | [`GetStoredApplicationUpRequest`](#ttn.lorawan.v3.GetStoredApplicationUpRequest) | [`ApplicationUp`](#ttn.lorawan.v3.ApplicationUp) _stream_ | Returns a stream of application messages that have been stored in the database. |
+| `GetStoredApplicationUpCount` | [`GetStoredApplicationUpCountRequest`](#ttn.lorawan.v3.GetStoredApplicationUpCountRequest) | [`GetStoredApplicationUpCountResponse`](#ttn.lorawan.v3.GetStoredApplicationUpCountResponse) | Returns how many application messages have been stored in the database for an application or end device. |
 
 #### HTTP bindings
 
@@ -1165,6 +1200,8 @@ The ApplicationUpStorage service can be used to query stored application upstrea
 | ----------- | ------ | ------- | ---- |
 | `GetStoredApplicationUp` | `GET` | `/api/v3/as/applications/{end_device_ids.application_ids.application_id}/devices/{end_device_ids.device_id}/packages/storage/{type}` |  |
 | `GetStoredApplicationUp` | `GET` | `/api/v3/as/applications/{application_ids.application_id}/packages/storage/{type}` |  |
+| `GetStoredApplicationUpCount` | `GET` | `/api/v3/as/applications/{end_device_ids.application_ids.application_id}/devices/{end_device_ids.device_id}/packages/storage/{type}/count` |  |
+| `GetStoredApplicationUpCount` | `GET` | `/api/v3/as/applications/{application_ids.application_id}/packages/storage/{type}/count` |  |
 
 ## <a name="lorawan-stack/api/applicationserver_packages.proto">File `lorawan-stack/api/applicationserver_packages.proto`</a>
 
@@ -3267,6 +3304,7 @@ This is used internally by the Network Server.
 | `desired_ping_slot_frequency` | [`FrequencyValue`](#ttn.lorawan.v3.FrequencyValue) |  | The frequency of the class B ping slot (Hz) Network Server should configure device to use via MAC commands. If unset, the default value from Network Server configuration or regional parameters specification will be used. |
 | `desired_beacon_frequency` | [`FrequencyValue`](#ttn.lorawan.v3.FrequencyValue) |  | The frequency of the class B beacon (Hz) Network Server should configure device to use via MAC commands. If unset, the default value from Network Server configuration will be used. |
 | `desired_max_eirp` | [`DeviceEIRPValue`](#ttn.lorawan.v3.DeviceEIRPValue) |  | Maximum EIRP (dBm). If unset, the default value from regional parameters specification will be used. |
+| `class_b_c_downlink_interval` | [`google.protobuf.Duration`](#google.protobuf.Duration) |  | The minimum duration passed before a network-initiated(e.g. Class B or C) downlink following an arbitrary downlink. |
 
 #### Field Rules
 
@@ -5112,6 +5150,7 @@ Only the components for which the keys were meant, will have the key-encryption-
 | ----- | ---- | ----- | ----------- |
 | `modulation_type` | [`uint32`](#uint32) |  |  |
 | `operating_channel_width` | [`uint32`](#uint32) |  | Operating Channel Width (kHz). |
+| `coding_rate` | [`string`](#string) |  |  |
 
 ### <a name="ttn.lorawan.v3.LoRaDataRate">Message `LoRaDataRate`</a>
 

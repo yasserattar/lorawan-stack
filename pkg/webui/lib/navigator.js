@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-.advanced-section
-  margin: 0
+/* eslint-disable import/prefer-default-export */
 
-.small-field
-  width: 12rem
-  align-content: flex-start
-
-.warning-tooltip
-  color: $c-warning
+export const isSafariUserAgent = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
